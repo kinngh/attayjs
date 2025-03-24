@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { serve } from "bun";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,38 +24,53 @@ async function registerApiRoutes(dir, baseRoute = "/api") {
 
 await registerApiRoutes(path.join(__dirname, "pages", "api"));
 
-createServer((req, res) => {
-  // Collect the raw data first:
-  let rawData = [];
-  req.on("data", (chunk) => rawData.push(chunk));
-  req.on("end", async () => {
-    try {
-      const combinedBody = Buffer.concat(rawData);
+/**
+ * Wraps a handler with one or more middleware functions.
+ * Each middleware receives the current Request and may:
+ * - Return a Response object to short-circuit further processing.
+ * - Return an updated Request to pass along to the next step.
+ * - Return nothing (or undefined) to keep using the same Request.
+ * The final argument is assumed to be the actual route handler.
+ * @param {...Function} fns - middleware functions followed by the final route handler
+ * @returns {Function} an async function that processes the Request
+ */
+export function withMiddleware(...fns) {
+  return async function (request) {
+    let currentRequest = request;
 
+    for (let i = 0; i < fns.length - 1; i++) {
+      const result = await fns[i](currentRequest);
+      if (result instanceof Response) {
+        return result;
+      }
+      if (result instanceof Request) {
+        currentRequest = result;
+      }
+    }
+
+    return fns[fns.length - 1](currentRequest);
+  };
+}
+
+serve({
+  port: 3000,
+  /**
+   * @param {Request} req
+   */
+  async fetch(req) {
+    try {
       const { method } = req;
-      const { pathname } = new URL(req.url, "http://" + req.headers.host);
+      const { pathname } = new URL(req.url);
       const handler = routes[method]?.[pathname];
       if (!handler) {
-        res.writeHead(404);
-        return res.end("Not found");
+        return new Response("Not found", { status: 404 });
       }
-
-      // Include the body in the Request constructor:
-      const nodeRequest = new Request("http://" + req.headers.host + req.url, {
-        method,
-        headers: req.headers,
-        body: combinedBody,
-      });
-
-      const response = await handler(nodeRequest);
-      res.writeHead(response.status, Object.fromEntries(response.headers));
-      res.end(await response.text());
+      return await handler(req);
     } catch (err) {
       console.error(err);
-      res.writeHead(500);
-      res.end("Internal Server Error");
+      return new Response("Internal Server Error", { status: 500 });
     }
-  });
-}).listen(3000, () => {
-  console.log("Server listening on http://localhost:3000");
+  },
 });
+
+console.log("Server listening on http://localhost:3000");
