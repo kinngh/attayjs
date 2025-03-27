@@ -1,11 +1,16 @@
 {
-  "name": "ate",
+  "name": "attay",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+  "bin": {
+    "attay": "./dist/cli.js"
+  },
   "scripts": {
-    "dev": "bun --watch index.ts",
-    "pretty": "prettier --write ./"
+    "build": "bun build ./src/cli.ts --outdir=dist --target bun",
+    "dev": "attay dev",
+    "pretty": "prettier --write ./",
+    "update": "ncu -u"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +20,7 @@
   "devDependencies": {
     "@types/bun": "^1.2.7",
     "@types/node": "^22.13.14",
+    "npm-check-updates": "^17.1.16",
     "prettier": "^3.5.3"
   }
 }

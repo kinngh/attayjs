@@ -28,7 +28,6 @@ async function registerApiRoutes(
   baseRoute = "/api"
 ): Promise<void> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
-
   for (const entry of entries) {
     const entryPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
@@ -48,51 +47,40 @@ async function registerApiRoutes(
   }
 }
 
-await registerApiRoutes(path.join(__dirname, "pages", "api"));
-
 export function withMiddleware(
   ...fns: [...Middleware[], RouteHandler]
 ): RouteHandler {
   return async function (request: Request): Promise<Response> {
     let currentRequest = request;
-
     for (let i = 0; i < fns.length - 1; i++) {
       const result = await fns[i](currentRequest);
-
-      if (result instanceof Response) {
-        return result;
-      }
-
-      if (result instanceof Request) {
-        currentRequest = result;
-      }
+      if (result instanceof Response) return result;
+      if (result instanceof Request) currentRequest = result;
     }
-
     const finalResult = await fns[fns.length - 1](currentRequest);
     if (!(finalResult instanceof Response)) {
       throw new Error("Final handler must return a Response");
     }
-
     return finalResult;
   };
 }
 
-serve({
-  port: 3000,
-  async fetch(req: Request): Promise<Response> {
-    try {
-      const method = req.method as HttpMethod;
-      const { pathname } = new URL(req.url);
-      const handler = routes[method]?.[pathname];
-      if (!handler) {
-        return new Response("Not found", { status: 404 });
+export async function dev() {
+  await registerApiRoutes(path.join(__dirname, "pages", "api"));
+  serve({
+    port: 3000,
+    async fetch(req: Request): Promise<Response> {
+      try {
+        const method = req.method as HttpMethod;
+        const { pathname } = new URL(req.url);
+        const handler = routes[method]?.[pathname];
+        if (!handler) return new Response("Not found", { status: 404 });
+        return await handler(req);
+      } catch (err) {
+        console.error(err);
+        return new Response("Internal Server Error", { status: 500 });
       }
-      return await handler(req);
-    } catch (err) {
-      console.error(err);
-      return new Response("Internal Server Error", { status: 500 });
-    }
-  },
-});
-
-console.log("Server listening on http://localhost:3000");
+    },
+  });
+  console.log("Server listening on http://localhost:3000");
+}
