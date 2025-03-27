@@ -10,10 +10,7 @@ type RouteHandler = (req: Request) => Promise<Response> | Response;
 type Middleware = (
   req: Request
 ) => Promise<Response | Request | void> | Response | Request | void;
-
-type Routes = {
-  [K in HttpMethod]: Record<string, RouteHandler>;
-};
+type Routes = { [K in HttpMethod]: Record<string, RouteHandler> };
 
 const routes: Routes = {
   GET: {},
@@ -22,6 +19,11 @@ const routes: Routes = {
   DELETE: {},
   PATCH: {},
 };
+
+export interface AttayConfig {
+  pagesDir?: string;
+  baseRoute?: string;
+}
 
 async function registerApiRoutes(
   dir: string,
@@ -66,7 +68,7 @@ export function withMiddleware(
 }
 
 export async function dev() {
-  await registerApiRoutes(path.join(__dirname, "pages", "api"));
+  await registerApiRoutes(path.join(process.cwd(), "pages", "api"));
   serve({
     port: 3000,
     async fetch(req: Request): Promise<Response> {
@@ -82,5 +84,6 @@ export async function dev() {
       }
     },
   });
+
   console.log("Server listening on http://localhost:3000");
 }

@@ -1,13 +1,13 @@
 {
   "name": "attay",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "type": "module",
   "bin": {
     "attay": "./dist/cli.js"
   },
   "scripts": {
-    "build": "bun build ./src/cli.ts --outdir=dist --target bun",
+    "build": "bun build src/cli.ts --outdir dist --target bun && bun build src/index.ts --outdir dist --target bun",
     "dev": "attay dev",
     "pretty": "prettier --write ./",
     "update": "ncu -u"

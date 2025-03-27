@@ -1,4 +1,4 @@
-import { withMiddleware } from "../../../index";
+import { withMiddleware } from "../../../src";
 import logMethodMiddleware from "../../../middlewares/logMethodMiddleware";
 
 /**
@@ -7,7 +7,7 @@ import logMethodMiddleware from "../../../middlewares/logMethodMiddleware";
 async function handleGet(request) {
   console.log(request.newThing);
   return new Response(
-    JSON.stringify({ message: "Hello from GET /api/example" }),
+    JSON.stringify({ message: "Hello from GET /api/example-middleware" }),
     { headers: { "Content-Type": "application/json" } }
   );
 }
