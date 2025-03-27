@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "bun --watch index.js",
+    "dev": "bun --watch index.ts",
     "pretty": "prettier --write ./"
   },
   "keywords": [],
@@ -13,6 +13,8 @@
   "description": "",
   "dependencies": {},
   "devDependencies": {
+    "@types/bun": "^1.2.7",
+    "@types/node": "^22.13.14",
     "prettier": "^3.5.3"
   }
 }
