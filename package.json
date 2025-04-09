@@ -1,21 +1,13 @@
 {
   "name": "attay",
   "version": "1.0.0",
-  "main": "./dist/index.js",
   "type": "module",
-  "bin": {
-    "attay": "./dist/cli.js"
-  },
   "scripts": {
-    "build": "bun build src/cli.ts --outdir dist --target bun && bun build src/index.ts --outdir dist --target bun",
-    "dev": "attay dev",
+    "dev": "bun --watch src/index.ts",
     "pretty": "prettier --write ./",
     "update": "ncu -u"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
   "dependencies": {},
   "devDependencies": {
     "@types/bun": "^1.2.7",
