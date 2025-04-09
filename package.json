@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/bun": "^1.2.7",
     "@types/node": "^22.13.14",
+    "@types/react": "^19.1.0",
     "npm-check-updates": "^17.1.16",
     "prettier": "^3.5.3"
   }
