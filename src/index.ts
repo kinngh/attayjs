@@ -1,9 +1,7 @@
 import { serve } from "bun";
 import fs from "fs/promises";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import serverConfig from "../server.config";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 type RouteHandler = (req: Request) => Promise<Response> | Response;
@@ -48,7 +46,9 @@ async function registerApiRoutes(
   }
 }
 
-await registerApiRoutes(path.join(process.cwd(), "pages", "api"));
+await registerApiRoutes(
+  path.join(process.cwd(), serverConfig.base, "pages", "api")
+);
 
 export function withMiddleware(
   ...fns: [...Middleware[], RouteHandler]
@@ -78,7 +78,7 @@ export function withMiddleware(
 }
 
 serve({
-  port: 3000,
+  port: serverConfig?.port || 3000,
   async fetch(req: Request): Promise<Response> {
     try {
       const method = req.method as HttpMethod;
@@ -95,4 +95,6 @@ serve({
   },
 });
 
-console.log("Server listening on http://localhost:3000");
+console.log(
+  `Server listening on http://localhost:${serverConfig?.port || 3000}`
+);

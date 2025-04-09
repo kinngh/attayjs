@@ -1,4 +1,4 @@
-import { withMiddleware } from "../../../src";
+import { withMiddleware } from "../../../../src";
 import logMethodMiddleware from "../../../middlewares/logMethodMiddleware";
 
 /**
