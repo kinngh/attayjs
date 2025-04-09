@@ -3,6 +3,7 @@ import { useRouter } from "../src/router";
 
 export default function HomePage() {
   const router = useRouter();
+  router.prefetch(["/page2", "/heu"]);
 
   return (
     <div>
