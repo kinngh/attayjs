@@ -10,6 +10,7 @@ export default function HomePage() {
       <h1>Welcome to Home</h1>
       <button onClick={() => router.push("/page2")}>Go to Page 2</button>
       <button onClick={() => router.push("/heu")}>Go to Dynamic Route</button>
+      <button onClick={() => router.push("/skidaddle/skadoodle")}>404</button>
     </div>
   );
 }
