@@ -44,7 +44,7 @@ You define routes using a filesystem structure. Attay converts that structure in
 Attay simply removes the boring glue.
 
 ```js
-import attayRoutes from "attay/server";
+import attayRoutes from "@attayjs/server";
 
 const autoRoutes = await attayRoutes({ dir: "./api", prefix: "/pre" });
 const server = Bun.serve({
@@ -93,7 +93,7 @@ Attay provides a small middleware helper for the server: `withMiddleware`.
 Middleware exists to share logic across routes without inventing a new request lifecycle. It is deliberately minimal.
 
 ```js
-import { withMiddleware } from "attay/server";
+import { withMiddleware } from "@attayjs/server";
 import logMethodMiddleware from "@/middleware/logMethodMiddleware";
 
 /**
@@ -128,7 +128,7 @@ Pages are discovered using Vite’s `import.meta.glob`, lazy-loaded, and mapped 
 ```jsx
 import { render } from "preact";
 import { LocationProvider } from "preact-iso";
-import RouterView from "attay/client";
+import RouterView from "@attayjs/client";
 
 render(
   <LocationProvider>
@@ -147,7 +147,7 @@ If you don’t want to use `src/pages`, you can pass your own Vite glob map to `
 ```jsx
 import { render } from "preact";
 import { LocationProvider } from "preact-iso";
-import RouterView from "attay/client";
+import RouterView from "@attayjs/client";
 
 const pages = import.meta.glob("/src/features/blog/pages/**/!(_)*.{tsx,jsx}");
 
@@ -168,7 +168,7 @@ This keeps page discovery fully static and bundler-friendly, while letting you o
 It exposes the current routing state and a simple navigation helper without hiding how routing actually works.
 
 ```js
-import { useRouter } from "attay/client";
+import { useRouter } from "@attayjs/client";
 
 export default function UserPage() {
   const { params, query, push } = useRouter();
