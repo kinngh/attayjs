@@ -1,19 +1,52 @@
 {
   "name": "attay",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "pretty": "prettier --write ./",
-    "update": "ncu -u"
-  },
+  "version": "0.0.1",
+  "description": "Helper utilities for Preact and Bun",
   "license": "MIT",
-  "dependencies": {},
+  "type": "module",
+  "author": {
+    "name": "Harshdeep Singh Hura",
+    "url": "https://harshdeephura.com"
+  },
+  "bugs": {
+    "url": "https://github.com/kinngh/attay/issues"
+  },
+  "homepage": "https://github.com/kinngh/attay#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kinngh/attay.git"
+  },
+  "exports": {
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "preact": "^10.0.0",
+    "preact-iso": "^2.0.0"
+  },
   "devDependencies": {
-    "@types/bun": "^1.2.7",
-    "@types/node": "^22.13.14",
-    "@types/react": "^19.1.0",
-    "npm-check-updates": "^17.1.16",
-    "prettier": "^3.5.3"
+    "@types/bun": "^1.3.5",
+    "@types/node": "^25.0.3",
+    "preact": "^10.0.0",
+    "preact-iso": "^2.0.0",
+    "prettier": "^3.7.4",
+    "tsup": "^8.5.1",
+    "typescript": "^5.0.0",
+    "vite": "^7.3.0"
+  },
+  "scripts": {
+    "clean": "bun -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "typecheck": "tsc --noEmit",
+    "build": "bun run clean; bun run typecheck; tsup",
+    "pretty": "prettier --write ./"
   }
 }
