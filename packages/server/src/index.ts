@@ -8,7 +8,7 @@ export type RouteHandler = (req: Request) => Response | Promise<Response>;
 
 export type MiddlewareResult = Response | Request | void;
 export type Middleware = (
-  req: Request,
+  req: Request
 ) => MiddlewareResult | Promise<MiddlewareResult>;
 
 export type MethodHandlers = Partial<Record<HttpMethod, RouteHandler>>;
@@ -150,7 +150,7 @@ function contentTypeFor(filePath: string): string {
  * Vite client static assets + SPA fallback.
  */
 export default async function attayRoutes(
-  options: AttayRoutesOptions = {},
+  options: AttayRoutesOptions = {}
 ): Promise<BunRoutes> {
   const routes: BunRoutes = {};
   const prefix = normalizePrefix(options.prefix);

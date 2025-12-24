@@ -1,0 +1,33 @@
+{
+  "name": "@attayjs/client",
+  "version": "0.0.1",
+  "description": "Attay client router utilities for Preact",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "preact": ">=10",
+    "preact-iso": ">=2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
