@@ -10,12 +10,12 @@
     "url": "https://harshdeephura.com"
   },
   "bugs": {
-    "url": "https://github.com/kinngh/attay/issues"
+    "url": "https://github.com/kinngh/attayjs/issues"
   },
-  "homepage": "https://github.com/kinngh/attay#readme",
+  "homepage": "https://github.com/kinngh/attayjs#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kinngh/attay.git"
+    "url": "https://github.com/kinngh/attayjs.git"
   },
   "workspaces": [
     "packages/*"
