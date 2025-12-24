@@ -19,7 +19,10 @@ const DEFAULT_PAGES = import.meta.glob(
 ) as PagesGlob;
 
 function pathToIsoPattern(key: string): string {
-  let routePath = key.replace(/^\.\.\/pages/, "").replace(/\.(t|j)sx$/, "");
+  let routePath = key
+    .replace(/^\.\.\/pages/, "")
+    .replace(/^\/src\/pages/, "")
+    .replace(/\.(t|j)sx$/, "");
 
   if (routePath.endsWith("/index")) {
     routePath = routePath.replace(/\/index$/, "") || "/";
@@ -31,12 +34,11 @@ function pathToIsoPattern(key: string): string {
   return routePath;
 }
 
-function toLazyModule(
-  loader: Loader,
-): () => Promise<{ default: AnyComponent }> {
+
+function toLazyComponent(loader: Loader): () => Promise<AnyComponent> {
   return async () => {
     const mod = await loader();
-    return { default: mod.default };
+    return mod.default;
   };
 }
 
@@ -51,12 +53,12 @@ function RouterView({ pages = DEFAULT_PAGES }: RouterViewProps): JSX.Element {
     .filter(([key]) => !/\/404\.(t|j)sx$/.test(key))
     .map(([key, loader]) => {
       const path = pathToIsoPattern(key);
-      const Component = lazy(toLazyModule(loader));
+      const Component = lazy(toLazyComponent(loader));
       return <Route key={key} path={path} component={Component} />;
     });
 
   const NotFound = notFoundEntry
-    ? lazy(toLazyModule(notFoundEntry[1]))
+    ? lazy(toLazyComponent(notFoundEntry[1]))
     : function NotFoundFallback() {
         return <p>no route found</p>;
       };

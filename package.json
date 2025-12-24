@@ -1,6 +1,6 @@
 {
   "name": "attay",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Helper utilities for Preact and Bun",
   "license": "MIT",
   "type": "module",
