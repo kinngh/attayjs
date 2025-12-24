@@ -1,21 +1,19 @@
 /// <reference types="vite/client" />
+
 import { ErrorBoundary, Router, Route, lazy } from "preact-iso";
 import type { ComponentType, JSX } from "preact";
 
 type AnyComponent = ComponentType<any>;
 
-type PageModule = { default: AnyComponent } & Record<string, unknown>;
-
-type Loader = () => Promise<PageModule>;
-
-export type PagesGlob = Record<string, Loader>;
+// Accept Vite's actual glob typing:
+export type PagesGlob = Record<string, () => Promise<unknown>>;
 
 export interface RouterViewProps {
   pages?: PagesGlob;
 }
 
 const DEFAULT_PAGES = import.meta.glob(
-  "/src/pages/**/!(_)*.{tsx,jsx}",
+  "/src/pages/**/!(_)*.{tsx,jsx}"
 ) as PagesGlob;
 
 function pathToIsoPattern(key: string): string {
@@ -28,23 +26,27 @@ function pathToIsoPattern(key: string): string {
     routePath = routePath.replace(/\/index$/, "") || "/";
   }
 
+  // [...slug] -> :slug*
   routePath = routePath.replace(/\[\.\.\.([^/\]]+)\]/g, ":$1*");
+  // [id] -> :id
   routePath = routePath.replace(/\[([^/\]]+)\]/g, ":$1");
 
   return routePath;
 }
 
-
-function toLazyComponent(loader: Loader): () => Promise<AnyComponent> {
-  return async () => {
+function toLazy(loader: () => Promise<unknown>) {
+  // preact-iso lazy(): resolve to the actual component
+  return lazy(async () => {
     const mod = await loader();
-    return mod.default;
-  };
+    return (mod as any)?.default ?? mod;
+  }) as AnyComponent;
 }
 
-function RouterView({ pages = DEFAULT_PAGES }: RouterViewProps): JSX.Element {
+export default function RouterView({
+  pages = DEFAULT_PAGES,
+}: RouterViewProps): JSX.Element {
   const entries = Object.entries(pages).filter(
-    ([key]) => !key.includes("/pages/api/"),
+    ([key]) => !key.includes("/pages/api/")
   );
 
   const notFoundEntry = entries.find(([key]) => /\/404\.(t|j)sx$/.test(key));
@@ -53,12 +55,12 @@ function RouterView({ pages = DEFAULT_PAGES }: RouterViewProps): JSX.Element {
     .filter(([key]) => !/\/404\.(t|j)sx$/.test(key))
     .map(([key, loader]) => {
       const path = pathToIsoPattern(key);
-      const Component = lazy(toLazyComponent(loader));
+      const Component = toLazy(loader);
       return <Route key={key} path={path} component={Component} />;
     });
 
   const NotFound = notFoundEntry
-    ? lazy(toLazyComponent(notFoundEntry[1]))
+    ? toLazy(notFoundEntry[1])
     : function NotFoundFallback() {
         return <p>no route found</p>;
       };
@@ -67,10 +69,8 @@ function RouterView({ pages = DEFAULT_PAGES }: RouterViewProps): JSX.Element {
     <ErrorBoundary>
       <Router>
         {routes}
-        <Route default component={NotFound} />
+        <Route default component={NotFound as AnyComponent} />
       </Router>
     </ErrorBoundary>
   );
 }
-
-export default RouterView;

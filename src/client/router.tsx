@@ -8,11 +8,6 @@ export interface RouterLike {
   url: string;
 }
 
-/**
- * Router hook backed by preact-iso.
- *
- * @returns {RouterLike}
- */
 export function useRouter(): RouterLike {
   const location = useLocation();
   const route = useRoute();
