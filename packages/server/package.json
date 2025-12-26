@@ -1,6 +1,6 @@
 {
   "name": "@attayjs/server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Attay server utilities for Bun",
   "license": "MIT",
   "type": "module",
