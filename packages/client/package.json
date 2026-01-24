@@ -1,6 +1,6 @@
 {
   "name": "@attayjs/client",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Attay client router utilities for Preact",
   "license": "MIT",
   "type": "module",

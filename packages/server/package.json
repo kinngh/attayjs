@@ -1,6 +1,6 @@
 {
   "name": "@attayjs/server",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Attay server utilities for Bun",
   "license": "MIT",
   "type": "module",
@@ -17,6 +17,9 @@
     "url": "https://github.com/kinngh/attayjs.git"
   },
   "sideEffects": false,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "README.md",

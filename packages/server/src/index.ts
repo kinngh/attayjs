@@ -1,6 +1,4 @@
-import fs from "fs/promises";
-import path from "path";
-import { pathToFileURL } from "url";
+import path from "node:path";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -67,24 +65,6 @@ export function withMiddleware(
   };
 }
 
-/** Very small mime map for common frontend assets. */
-const MIME_TYPES: Record<string, string> = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".mjs": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".gif": "image/gif",
-  ".svg": "image/svg+xml",
-  ".ico": "image/x-icon",
-  ".woff": "font/woff",
-  ".woff2": "font/woff2",
-  ".ttf": "font/ttf",
-};
-
 function isHttpMethod(x: string): x is HttpMethod {
   return (
     x === "GET" ||
@@ -131,20 +111,6 @@ function joinPrefixed(prefix: string, routePath: string): string {
   return prefix + routePath;
 }
 
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    const stat = await fs.stat(filePath);
-    return stat.isFile();
-  } catch {
-    return false;
-  }
-}
-
-function contentTypeFor(filePath: string): string {
-  const ext = path.extname(filePath);
-  return MIME_TYPES[ext] || "application/octet-stream";
-}
-
 /**
  * Create a Bun `routes` table by scanning an API directory and (optionally) wiring up
  * Vite client static assets + SPA fallback.
@@ -167,61 +133,57 @@ export default async function attayRoutes(
       : path.join(process.cwd(), options.client)
     : null;
 
-  async function registerApi(dirPath: string, routeBase = ""): Promise<void> {
-    let entries: Array<import("fs").Dirent>;
-    try {
-      entries = await fs.readdir(dirPath, { withFileTypes: true });
-    } catch {
-      // dir may not exist; that's ok
-      return;
-    }
+  // Use Bun.Glob for native performance and to avoid node:fs
+  const glob = new Bun.Glob("**/*.{ts,js}");
 
-    for (const entry of entries) {
-      const entryPath = path.join(dirPath, entry.name);
+  for await (const relativePath of glob.scan(dir)) {
+    // 1. Filter: No underscore segments (e.g. "_utils/helper.ts")
+    // Bun.Glob uses '/' as separator in scan results.
+    const parts = relativePath.split("/");
+    if (parts.some((p) => p.startsWith("_"))) continue;
 
-      if (entry.isDirectory()) {
-        await registerApi(entryPath, routeBase + "/" + entry.name);
+    // 2. Filter: Valid HTTP method filename
+    const filename = parts[parts.length - 1];
+    const name = filename.replace(/\.(ts|js)$/, "");
+    const upper = name.toUpperCase();
+    if (!isHttpMethod(upper)) continue;
+
+    // 3. Import
+    const absolutePath = path.join(dir, relativePath);
+    const mod = await import(absolutePath);
+    const handler = mod?.default;
+    if (typeof handler !== "function") continue;
+
+    // 4. Calculate Route
+    // Remove filename from path to get the route structure
+    // e.g. "users/[id]/GET.ts" -> "users/[id]"
+    const routeSegments = parts.slice(0, -1);
+    const routeBase = routeSegments.join("/");
+
+    const routePath = joinPrefixed(prefix, toRoutePath(routeBase));
+
+    const existing = routes[routePath];
+    if (
+      existing &&
+      typeof existing === "object" &&
+      !(existing instanceof Response)
+    ) {
+      const asMethods = existing as MethodHandlers;
+      if (
+        "GET" in asMethods ||
+        "POST" in asMethods ||
+        "PUT" in asMethods ||
+        "DELETE" in asMethods ||
+        "PATCH" in asMethods
+      ) {
+        asMethods[upper] = handler as RouteHandler;
+        routes[routePath] = asMethods;
         continue;
       }
-
-      if (!/\.(ts|js)$/.test(entry.name)) continue;
-      if (entry.name.startsWith("_")) continue;
-
-      const name = path.basename(entry.name).replace(/\.(ts|js)$/, "");
-      const upper = name.toUpperCase();
-      if (!isHttpMethod(upper)) continue;
-
-      const mod = await import(pathToFileURL(entryPath).href);
-      const handler = mod?.default;
-      if (typeof handler !== "function") continue;
-
-      const routePath = joinPrefixed(prefix, toRoutePath(routeBase));
-
-      const existing = routes[routePath];
-      if (
-        existing &&
-        typeof existing === "object" &&
-        !(existing instanceof Response)
-      ) {
-        const asMethods = existing as MethodHandlers;
-        if (
-          "GET" in asMethods ||
-          "POST" in asMethods ||
-          "PUT" in asMethods ||
-          "DELETE" in asMethods ||
-          "PATCH" in asMethods
-        ) {
-          asMethods[upper] = handler as RouteHandler;
-          routes[routePath] = asMethods;
-          continue;
-        }
-      }
-
-      routes[routePath] = { [upper]: handler as RouteHandler };
     }
-  }
 
-  await registerApi(dir);
+    routes[routePath] = { [upper]: handler as RouteHandler };
+  }
 
   if (clientDir) {
     const indexHtmlPath = path.join(clientDir, "index.html");
@@ -239,21 +201,13 @@ export default async function attayRoutes(
       const filePath =
         safePath === "" ? indexHtmlPath : path.join(clientDir, safePath);
 
-      if (await fileExists(filePath)) {
-        const file = Bun.file(filePath);
-        return new Response(file, {
-          headers: {
-            "Content-Type": contentTypeFor(filePath),
-          },
-        });
+      const file = Bun.file(filePath);
+      if (await file.exists()) {
+        return new Response(file);
       }
 
       const indexFile = Bun.file(indexHtmlPath);
-      return new Response(indexFile, {
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-        },
-      });
+      return new Response(indexFile);
     };
 
     routes["/*"] = serveClient;
@@ -261,5 +215,3 @@ export default async function attayRoutes(
 
   return routes;
 }
-
-export const attayRoutesAsync = attayRoutes;
